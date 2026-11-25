@@ -13,7 +13,8 @@ const SOURCE_COPY: Record<Source, { label: string; tone: 'success' | 'neutral' |
 }
 
 export function SourceBadge({ source }: { source: Source }) {
-  const { label, tone, Icon, hint } = SOURCE_COPY[source]
+  const copy = SOURCE_COPY[source] || SOURCE_COPY.offchain
+  const { label, tone, Icon, hint } = copy
   return (
     <span title={hint}>
       <Badge tone={tone}>

@@ -59,7 +59,8 @@ export default function Team() {
   }, [workspace.id])
 
   if (!data) return <Spinner label="Loading team" />
-  const invitable = assignableRoles(data.myRole).filter((r) => r !== 'owner')
+  const myRole = data?.myRole || 'owner';
+  const invitable = assignableRoles(myRole).filter((r) => r !== 'owner')
 
   const act = async (fn: () => Promise<unknown>, success: string) => {
     try {
@@ -119,11 +120,11 @@ export default function Team() {
       />
 
       <Card>
-        <CardHeader title={`Members (${data.members.length})`} />
+        <CardHeader title={`Members (${(data?.members || []).length})`} />
         <ul className="divide-y divide-line">
-          {data.members.map((m) => {
+          {(data?.members || []).map((m) => {
             const isMe = m.userId === data.me
-            const canEdit = can('team.manage') && !isMe && assignableRoles(data.myRole).includes(m.role)
+            const canEdit = can('team.manage') && !isMe && assignableRoles(myRole).includes(m.role)
             return (
               <li key={m.userId} className="flex flex-wrap items-center gap-3 px-5 py-4 sm:px-6">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-soft text-sm font-bold text-violet">
@@ -180,12 +181,12 @@ export default function Team() {
       </Card>
 
       <Card className="mt-6">
-        <CardHeader title={`Pending invitations (${data.invitations.length})`} />
-        {data.invitations.length === 0 ? (
+        <CardHeader title={`Pending invitations (${(data?.invitations || []).length})`} />
+        {(data?.invitations || []).length === 0 ? (
           <EmptyState icon={<MailPlus className="h-5 w-5" />} title="No pending invitations" description="Invitations expire after 7 days." />
         ) : (
           <ul className="divide-y divide-line">
-            {data.invitations.map((i) => (
+            {(data?.invitations || []).map((i) => (
               <li key={i.id} className="flex flex-wrap items-center gap-3 px-5 py-4 sm:px-6">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{i.email}</p>

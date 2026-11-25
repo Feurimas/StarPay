@@ -79,11 +79,11 @@ export default function Workflows() {
       <PageHeader title="Workflows" description="Automate routine work. Workflows can notify your team, update fulfilment, issue invoices and draft text. They can never send or approve a payment, and payments are only confirmed by onchain verification." action={manage && <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> New workflow</Button>} />
       {list.error && <Alert tone="error">{list.error}</Alert>}
       {!list.data && !list.error && <Spinner />}
-      {list.data && list.data.workflows.length === 0 && (
+      {list.data && (list.data.workflows || []).length === 0 && (
         <EmptyState icon={<Workflow className="h-5 w-5" />} title="No workflows yet" description="Start from a template or build your own on the visual canvas." action={manage && <Button onClick={() => setOpen(true)}>Create a workflow</Button>} />
       )}
       <div className="grid gap-3 md:grid-cols-2">
-        {list.data?.workflows.map((w) => (
+        {(list.data?.workflows || []).map((w) => (
           <Card key={w.id} className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -106,7 +106,7 @@ export default function Workflows() {
         {error && <Alert tone="error">{error}</Alert>}
         <p className="mb-2 text-sm font-medium text-ink">Start from a template</p>
         <ul className="space-y-2">
-          {meta.data?.templates.map((t) => (
+          {(meta.data?.templates || []).map((t) => (
             <li key={t.id}>
               <button disabled={busy} onClick={() => void create({ template: t.id })} className="w-full rounded-xl border border-line p-3 text-left hover:border-brand disabled:opacity-60">
                 <span className="block text-sm font-medium text-ink">{t.name}</span>
@@ -120,7 +120,7 @@ export default function Workflows() {
           <Field label="Name" htmlFor="wn"><Input id="wn" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={100} /></Field>
           <Field label="Starts when" htmlFor="wt">
             <Select id="wt" value={trigger} onChange={(e) => setTrigger(e.target.value)}>
-              {meta.data?.triggers.map((t) => <option key={t} value={t}>{TRIGGER_LABELS[t] ?? t}</option>)}
+              {(meta.data?.triggers || ["order.created", "payment.verified", "order.status_changed", "support.message", "schedule.daily", "manual"]).map((t) => <option key={t} value={t}>{TRIGGER_LABELS[t] ?? t}</option>)}
             </Select>
           </Field>
           <div className="flex justify-end"><Button type="submit" loading={busy}>Create blank workflow</Button></div>

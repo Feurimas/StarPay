@@ -228,14 +228,14 @@ async function supabaseFallback<T>(method: string, path: string, body?: any): Pr
       days,
       generatedAt: new Date().toISOString(),
       metrics: {
-        orders: { value: 0, change: null, source: 'offchain_record' },
-        sales: { value: '0.00', change: null, source: 'offchain_record' },
-        openOrders: { value: 0, change: null, source: 'offchain_record' },
-        completedOrders: { value: 0, change: null, source: 'offchain_record' },
-        cancelledOrders: { value: 0, change: null, source: 'offchain_record' },
-        verifiedPayments: { value: '0.00', count: 0, change: null, source: 'onchain_verified' },
-        pendingPayments: { value: '0.00', count: 0, change: null, source: 'onchain_verified' },
-        awaitingPayment: { value: '0.00', count: 0, change: null, source: 'offchain_record' },
+        orders: { value: 0, change: null, source: 'offchain' },
+        sales: { value: '0.00', change: null, source: 'offchain' },
+        openOrders: { value: 0, change: null, source: 'offchain' },
+        completedOrders: { value: 0, change: null, source: 'offchain' },
+        cancelledOrders: { value: 0, change: null, source: 'offchain' },
+        verifiedPayments: { value: '0.00', count: 0, change: null, source: 'onchain' },
+        pendingPayments: { value: '0.00', count: 0, change: null, source: 'onchain' },
+        awaitingPayment: { value: '0.00', count: 0, change: null, source: 'offchain' },
         verifiedShare: { value: 0, change: null, source: 'estimate' },
         projectedMonthlySales: { value: '0.00', change: null, source: 'estimate' },
       },
@@ -362,7 +362,18 @@ async function supabaseFallback<T>(method: string, path: string, body?: any): Pr
   // 11. Payments (/workspaces/:id/payments)
   const payMatch = cleanPath.match(/^\/workspaces\/([a-zA-Z0-9-]+)\/payments$/)
   if (payMatch && method === 'GET') {
-    return { payments: [], totalVerified: '0.00', totalPending: '0.00' } as T
+    return {
+      enabled: true,
+      summary: {
+        verifiedCount: 0,
+        verifiedAmount: '0.00',
+        pendingCount: 0,
+        pendingAmount: '0.00',
+        awaitingCount: 0,
+        awaitingAmount: '0.00',
+      },
+      payments: [],
+    } as T
   }
 
   // 12. Customers (/workspaces/:id/customers)
@@ -474,24 +485,56 @@ async function supabaseFallback<T>(method: string, path: string, body?: any): Pr
   // 23. Payout (/workspaces/:id/payout)
   const payoMatch = cleanPath.match(/^\/workspaces\/([a-zA-Z0-9-]+)\/payout$/)
   if (payoMatch && method === 'GET') {
-    return { payout: null } as T
+    return { address: null, verifiedAt: null, configured: false, router: null } as T
   }
 
   // 24. Team Members (/workspaces/:id/members)
   const memMatch = cleanPath.match(/^\/workspaces\/([a-zA-Z0-9-]+)\/members$/)
   if (memMatch && method === 'GET') {
     const wsId = memMatch[1]
+    const { data: { session } } = await supabase.auth.getSession()
+    const myId = session?.user?.id || ''
     const { data: mems } = await supabase
       .from('memberships')
-      .select('role, user_id, users(id, name, email)')
+      .select('role, user_id, created_at, users(id, name, email)')
       .eq('workspace_id', wsId)
-    return {
-      members: (mems || []).map((m: any) => ({
-        id: m.users?.id || m.user_id,
-        name: m.users?.name || 'Member',
+
+    let myRole = 'owner'
+    const members = (mems || []).map((m: any) => {
+      const uId = m.users?.id || m.user_id
+      if (uId === myId) myRole = m.role
+      return {
+        userId: uId,
+        name: m.users?.name || 'Team member',
         email: m.users?.email || '',
-        role: m.role,
-      }))
+        role: m.role || 'viewer',
+        joinedAt: m.created_at || new Date().toISOString(),
+      }
+    })
+
+    const { data: invs } = await supabase.from('invitations').select('*').eq('workspace_id', wsId).is('accepted_at', null).is('revoked_at', null)
+
+    return {
+      me: myId,
+      myRole,
+      members,
+      invitations: (invs || []).map((i: any) => ({
+        id: i.id,
+        email: i.email,
+        role: i.role,
+        expiresAt: i.expires_at,
+      })),
+    } as T
+  }
+
+  // Workflow Meta (/workspaces/:id/workflow-meta)
+  if (cleanPath.includes('/workflow-meta')) {
+    return {
+      triggers: ['order.created', 'payment.verified', 'order.status_changed', 'support.message', 'schedule.daily', 'manual'],
+      templates: [
+        { id: 'notify-order', name: 'Order Notification', description: 'Send email notification when order is placed', trigger: 'order.created' },
+        { id: 'payment-receipt', name: 'Payment Receipt', description: 'Issue invoice automatically upon verified USDC payment', trigger: 'payment.verified' },
+      ],
     } as T
   }
 

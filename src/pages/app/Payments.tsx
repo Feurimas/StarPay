@@ -53,7 +53,7 @@ export default function Payments() {
   }
 
   if (!data) return <Spinner label="Loading payments" />
-  const s = data.summary
+  const s = data?.summary || { verifiedCount: 0, verifiedAmount: "0.00", pendingCount: 0, pendingAmount: "0.00", awaitingCount: 0, awaitingAmount: "0.00" }
 
   return (
     <>
@@ -67,11 +67,11 @@ export default function Payments() {
 
       <Card className="mt-6">
         <CardHeader title="Transaction history" description="Each row is one payment request. Transaction links open the Arc Testnet explorer." />
-        {data.payments.length === 0 ? (
+        {(data.payments || []).length === 0 ? (
           <EmptyState icon={<Wallet className="h-5 w-5" />} title="No payment requests yet" description="A request is created when a customer opens the payment step on their order, or when you request payment from an order." />
         ) : (
           <ul className="divide-y divide-line">
-            {data.payments.map((p) => (
+            {(data.payments || []).map((p) => (
               <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 sm:px-6">
                 <div className="min-w-0 flex-1 basis-48">
                   <Link to={`/app/${workspace.id}/orders/${p.orderId}`} className="text-[15px] font-semibold hover:underline">Order #{p.orderNumber} · {p.customerName}</Link>
