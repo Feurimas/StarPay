@@ -12,29 +12,37 @@ export class ApiError extends Error {
 
 // Fallback handlers powered directly by Supabase when backend server is unavailable
 async function supabaseFallback<T>(method: string, path: string, body?: any): Promise<T> {
-  // 1. Auth SignUp
-  if (path === '/auth/signup' && method === 'POST') {
-    const { name, email, password } = body || {}
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name } },
-    })
-    if (authError) throw new ApiError(400, authError.message, 'auth_error')
+      // 1. Auth SignUp
+    if (path === '/auth/signup' && method === 'POST') {
+      const { name, email, password } = body || {}
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } },
+      })
 
-    const user = authData.user
-    if (user) {
-      // Store in users table
-      await supabase.from('users').upsert({
-        id: user.id,
-        email: user.email,
-        name: name || user.email?.split('@')[0] || 'User',
-        password_hash: 'managed_by_supabase_auth',
-        email_verified_at: user.email_confirmed_at || new Date().toISOString(),
-      }).select()
+      if (authError) {
+        if (authError.message.toLowerCase().includes('rate limit')) {
+          throw new ApiError(429, 'Confirmation email already sent or rate limited. Please check your inbox (or spam) to confirm your email, or turn off "Confirm email" in your Supabase dashboard.', 'rate_limit')
+        }
+        if (authError.message.toLowerCase().includes('already registered')) {
+          throw new ApiError(400, 'An account with this email already exists. Please go to Sign in.', 'already_registered')
+        }
+        throw new ApiError(400, authError.message, 'auth_error')
+      }
+
+      const user = authData.user
+      if (user) {
+        await supabase.from('users').upsert({
+          id: user.id,
+          email: user.email,
+          name: name || user.email?.split('@')[0] || 'User',
+          password_hash: 'managed_by_supabase_auth',
+          email_verified_at: user.email_confirmed_at || new Date().toISOString(),
+        }).select()
+      }
+      return { ok: true, user } as T
     }
-    return { ok: true, user } as T
-  }
 
   // 2. Auth SignIn
   if (path === '/auth/signin' && method === 'POST') {
