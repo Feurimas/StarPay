@@ -97,10 +97,20 @@ async function supabaseFallback<T>(method: string, path: string, body?: any): Pr
     return { user: userData, workspaces } as T
   }
 
-  // 5. Create Workspace (/workspaces)
+    // 5. Create Workspace (/workspaces)
   if (path === '/workspaces' && method === 'POST') {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) throw new ApiError(401, 'Please sign in to create a workspace', 'unauthorized')
+
+    const user = session.user
+    // Guarantee user row exists in public.users to satisfy foreign key constraint
+    await supabase.from('users').upsert({
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+      password_hash: 'managed_by_supabase_auth',
+      email_verified_at: user.email_confirmed_at || new Date().toISOString(),
+    })
 
     const { name, country, businessType } = body || {}
     const slug = (name || 'workspace')
@@ -115,7 +125,7 @@ async function supabaseFallback<T>(method: string, path: string, body?: any): Pr
         slug,
         country: country || 'US',
         business_type: businessType || 'Online store',
-        created_by: session.user.id,
+        created_by: user.id,
       })
       .select()
       .single()
@@ -125,7 +135,7 @@ async function supabaseFallback<T>(method: string, path: string, body?: any): Pr
     // Add membership as owner
     await supabase.from('memberships').insert({
       workspace_id: ws.id,
-      user_id: session.user.id,
+      user_id: user.id,
       role: 'owner',
     })
 
