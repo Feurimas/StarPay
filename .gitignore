@@ -1,0 +1,15 @@
+node_modules
+dist
+.env
+.env.*
+.circle
+recovery_file*
+contracts/out
+contracts/cache
+*.log
+traces.jsonl
+console.jsonl
+!.env.example
+.vercel
+StarPay/
+.tmp-journey/

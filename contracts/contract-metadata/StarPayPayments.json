@@ -1,0 +1,230 @@
+{
+  "contractAddress": "0x47aa0521211cd144a56ba2910a732241efcdd512",
+  "network": "ARC-TESTNET",
+  "deployerWalletId": "3c2464b2-8369-52e2-a782-800bbeca5396",
+  "contract_code_path": "/home/user/app/contracts/StarPayPayments.sol",
+  "contract_compiled_code_path": "/home/user/app/contracts/out/StarPayPayments.sol/StarPayPayments.json",
+  "contract_network_and_links": {
+    "Arc Testnet": "https://explorer.testnet.arc.io/address/0x47aa0521211cd144a56ba2910a732241efcdd512"
+  },
+  "contract_deployments": [
+    {
+      "chain": "Arc Testnet",
+      "address": "0x47aa0521211cd144a56ba2910a732241efcdd512",
+      "explorerUrl": "https://explorer.testnet.arc.io/address/0x47aa0521211cd144a56ba2910a732241efcdd512",
+      "txHash": "0xe7f8f95827f7176871edd33aa9211532b07aadadf6583361d55f9d7432ae1436",
+      "deployedAt": "2026-11-18T08:04:06.060Z"
+    }
+  ],
+  "abi": [
+    {
+      "type": "constructor",
+      "inputs": [
+        {
+          "name": "usdc_",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "isPaid",
+      "inputs": [
+        {
+          "name": "invoiceRef",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "merchant",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool",
+          "internalType": "bool"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "paid",
+      "inputs": [
+        {
+          "name": "paymentId",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool",
+          "internalType": "bool"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "pay",
+      "inputs": [
+        {
+          "name": "invoiceRef",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "merchant",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "paymentIdOf",
+      "inputs": [
+        {
+          "name": "invoiceRef",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "merchant",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "paymentId",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "stateMutability": "pure"
+    },
+    {
+      "type": "function",
+      "name": "usdc",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "contract IERC20"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "event",
+      "name": "PaymentReceived",
+      "inputs": [
+        {
+          "name": "invoiceRef",
+          "type": "bytes32",
+          "indexed": true,
+          "internalType": "bytes32"
+        },
+        {
+          "name": "merchant",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "payer",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        },
+        {
+          "name": "paymentId",
+          "type": "bytes32",
+          "indexed": false,
+          "internalType": "bytes32"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "error",
+      "name": "AlreadyPaid",
+      "inputs": [
+        {
+          "name": "paymentId",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "InvalidAmount",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "InvalidInvoiceRef",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "InvalidMerchant",
+      "inputs": [
+        {
+          "name": "merchant",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "InvalidUSDC",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "SafeERC20FailedOperation",
+      "inputs": [
+        {
+          "name": "token",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
+    }
+  ]
+}
