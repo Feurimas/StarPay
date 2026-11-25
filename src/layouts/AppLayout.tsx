@@ -1,4 +1,4 @@
-import { BarChart3, Bell, BookOpen, Bot, Building2, Check, Inbox as InboxIcon, Workflow as WorkflowIcon, ChevronsUpDown, CreditCard, FileText, LayoutDashboard, LogOut, Menu, Package, Percent, Plus, Receipt, Settings, Store, Wallet as WalletIcon, UserCircle, Users, UsersRound, X } from 'lucide-react'
+import { Tag, BarChart3, Bell, BookOpen, Bot, Building2, Check, Inbox as InboxIcon, Workflow as WorkflowIcon, ChevronsUpDown, CreditCard, FileText, LayoutDashboard, LogOut, Menu, Package, Percent, Plus, Receipt, Settings, Store, Wallet as WalletIcon, UserCircle, Users, UsersRound, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
@@ -104,6 +104,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <p className="eyebrow mb-1 mt-4 px-3">Commerce</p>
         <NavItem to={`${base}/orders`} icon={Receipt} label="Orders" onNavigate={onNavigate} />
         <NavItem to={`${base}/products`} icon={Package} label="Products" onNavigate={onNavigate} />
+        <NavItem to={`${base}/categories`} icon={Tag} label="Categories" onNavigate={onNavigate} />
         <NavItem to={`${base}/payments`} icon={CreditCard} label="Payments" onNavigate={onNavigate} />
         <NavItem to={`${base}/customers`} icon={UsersRound} label="Customers" onNavigate={onNavigate} />
         <NavItem to={`${base}/invoices`} icon={FileText} label="Invoices" onNavigate={onNavigate} />

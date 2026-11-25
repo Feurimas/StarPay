@@ -255,12 +255,108 @@ async function supabaseFallback<T>(method: string, path: string, body?: any): Pr
     return { orders: list || [] } as T
   }
 
-  // 10. Products (/workspaces/:id/products)
+  // 10. Single Product (/workspaces/:id/products/:pid)
+  const singleProdMatch = cleanPath.match(/^\/workspaces\/([a-zA-Z0-9-]+)\/products\/([a-zA-Z0-9-]+)$/)
+  if (singleProdMatch) {
+    const [_, wsId, pid] = singleProdMatch
+    if (pid === 'new') {
+      return { product: null, imageIds: [] } as T
+    }
+    if (method === 'GET') {
+      const { data: p } = await supabase.from('products').select('*').eq('id', pid).eq('workspace_id', wsId).single()
+      if (!p) {
+        return {
+          product: {
+            id: pid,
+            name: '',
+            description: '',
+            price: '0.00',
+            sku: '',
+            trackInventory: false,
+            stock: 0,
+            status: 'draft',
+            categoryId: '',
+          },
+          imageIds: [],
+        } as T
+      }
+      return {
+        product: {
+          id: p.id,
+          name: p.name,
+          description: p.description || '',
+          price: (Number(p.price_units || 0) / 1_000_000).toFixed(2),
+          sku: p.sku ?? '',
+          trackInventory: p.track_inventory ?? false,
+          stock: p.stock ?? 0,
+          status: p.status || 'draft',
+          categoryId: p.category_id ?? '',
+        },
+        imageIds: [],
+      } as T
+    }
+    if (method === 'PUT') {
+      const p = body || {}
+      const priceUnits = Math.round(Number(p.price || 0) * 1_000_000)
+      await supabase.from('products').update({
+        name: p.name,
+        description: p.description || '',
+        price_units: priceUnits,
+        sku: p.sku || null,
+        track_inventory: Boolean(p.trackInventory),
+        stock: Number(p.stock || 0),
+        status: p.status || 'draft',
+        category_id: p.categoryId || null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', pid).eq('workspace_id', wsId)
+      return { ok: true } as T
+    }
+    if (method === 'DELETE') {
+      await supabase.from('products').delete().eq('id', pid).eq('workspace_id', wsId)
+      return { ok: true } as T
+    }
+  }
+
+  // 10. Products List / Create (/workspaces/:id/products)
   const prodMatch = cleanPath.match(/^\/workspaces\/([a-zA-Z0-9-]+)\/products$/)
-  if (prodMatch && method === 'GET') {
+  if (prodMatch) {
     const wsId = prodMatch[1]
-    const { data: list } = await supabase.from('products').select('*').eq('workspace_id', wsId).order('created_at', { ascending: false })
-    return { products: list || [] } as T
+    if (method === 'GET') {
+      const { data: list } = await supabase
+        .from('products')
+        .select('*, categories(name)')
+        .eq('workspace_id', wsId)
+        .order('created_at', { ascending: false })
+
+      const products = (list || []).map((p) => ({
+        id: p.id,
+        name: p.name,
+        price: (Number(p.price_units || 0) / 1_000_000).toFixed(2),
+        sku: p.sku ?? '',
+        trackInventory: p.track_inventory ?? false,
+        stock: p.stock ?? 0,
+        status: p.status || 'draft',
+        categoryName: p.categories?.name || null,
+        imageId: null,
+      }))
+      return { products } as T
+    }
+    if (method === 'POST') {
+      const p = body || {}
+      const priceUnits = Math.round(Number(p.price || 0) * 1_000_000)
+      const { data: newProd, error } = await supabase.from('products').insert({
+        workspace_id: wsId,
+        name: p.name,
+        description: p.description || '',
+        price_units: priceUnits,
+        sku: p.sku || null,
+        track_inventory: Boolean(p.trackInventory),
+        stock: Number(p.stock || 0),
+        status: p.status || 'draft',
+        category_id: p.categoryId || null,
+      }).select('id').single()
+      return { id: newProd?.id || 'prod-' + Date.now() } as T
+    }
   }
 
   // 11. Payments (/workspaces/:id/payments)
@@ -349,8 +445,30 @@ async function supabaseFallback<T>(method: string, path: string, body?: any): Pr
 
   // 22. Categories (/workspaces/:id/categories)
   const catMatch = cleanPath.match(/^\/workspaces\/([a-zA-Z0-9-]+)\/categories$/)
-  if (catMatch && method === 'GET') {
-    return { categories: [] } as T
+  if (catMatch) {
+    const wsId = catMatch[1]
+    if (method === 'GET') {
+      const { data: list } = await supabase.from('categories').select('*').eq('workspace_id', wsId).order('name')
+      return { categories: list || [] } as T
+    }
+    if (method === 'POST') {
+      const { name } = body || {}
+      const { data: newCat, error } = await supabase.from('categories').insert({
+        workspace_id: wsId,
+        name: (name || 'General').trim(),
+      }).select('id').single()
+      return { id: newCat?.id || 'cat-' + Date.now() } as T
+    }
+  }
+
+  // Categories by ID (/workspaces/:id/categories/:cid)
+  const singleCatMatch = cleanPath.match(/^\/workspaces\/([a-zA-Z0-9-]+)\/categories\/([a-zA-Z0-9-]+)$/)
+  if (singleCatMatch) {
+    const [_, wsId, cid] = singleCatMatch
+    if (method === 'DELETE') {
+      await supabase.from('categories').delete().eq('id', cid).eq('workspace_id', wsId)
+      return { ok: true } as T
+    }
   }
 
   // 23. Payout (/workspaces/:id/payout)

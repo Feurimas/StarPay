@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+﻿import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/auth/AuthContext'
 import { Spinner } from '@/components/ui'
 import AppLayout from '@/layouts/AppLayout'
@@ -13,6 +13,7 @@ import OrderNew from '@/pages/app/OrderNew'
 import Orders from '@/pages/app/Orders'
 import ProductForm from '@/pages/app/ProductForm'
 import Products from '@/pages/app/Products'
+import Categories from '@/pages/app/Categories'
 import StorefrontSettings from '@/pages/app/StorefrontSettings'
 import Payments from '@/pages/app/Payments'
 import Wallet from '@/pages/app/Wallet'
@@ -111,6 +112,7 @@ export default function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
           <Route path="products/:pid" element={<ProductForm />} />
+          <Route path="categories" element={<Categories />} />
           <Route path="discounts" element={<Discounts />} />
           <Route path="storefront" element={<StorefrontSettings />} />
           <Route path="orders" element={<Orders />} />
@@ -141,3 +143,4 @@ export default function App() {
     </AuthProvider>
   )
 }
+

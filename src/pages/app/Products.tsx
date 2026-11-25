@@ -30,14 +30,14 @@ export default function Products() {
     let cancelled = false
     api
       .get<{ products: ProductSummary[] }>(`/workspaces/${workspace.id}/products${status ? `?status=${status}` : ''}`)
-      .then((r) => !cancelled && setProducts(r.products))
+      .then((r) => !cancelled && setProducts(Array.isArray(r?.products) ? r.products : []))
       .catch((e) => toast.error(errorMessage(e)))
     return () => {
       cancelled = true
     }
   }, [workspace.id, status])
 
-  const shown = products?.filter((p) => !query || p.name.toLowerCase().includes(query.toLowerCase()) || (p.sku ?? '').toLowerCase().includes(query.toLowerCase()))
+  const shown = (products || []).filter((p) => !query || (p?.name || '').toLowerCase().includes(query.toLowerCase()) || (p?.sku ?? '').toLowerCase().includes(query.toLowerCase()))
 
   return (
     <>

@@ -65,16 +65,18 @@ export default function ProductForm() {
 
   useEffect(() => {
     let cancelled = false
-    api.get<{ categories: Category[] }>(`${base}/categories`).then((r) => !cancelled && setCategories(r.categories)).catch(() => undefined)
+    api.get<{ categories: Category[] }>(`${base}/categories`).then((r) => !cancelled && setCategories(Array.isArray(r?.categories) ? r.categories : [])).catch(() => undefined)
     if (!isNew) {
       api
         .get<ProductDetail>(`${base}/products/${pid}`)
         .then((r) => {
           if (cancelled) return
-          const p = r.product
-          setForm({ name: p.name, description: p.description, price: p.price, sku: p.sku ?? '', trackInventory: p.trackInventory, stock: String(p.stock), status: p.status, categoryId: p.categoryId ?? '' })
-          setImages(r.imageIds)
-          setLoaded(true)
+          const prod = r?.product;
+          if (prod) {
+            setForm({ name: prod.name || '', description: prod.description || '', price: prod.price || '0.00', sku: prod.sku ?? '', trackInventory: Boolean(prod.trackInventory), stock: String(prod.stock ?? 0), status: prod.status || 'draft', categoryId: prod.categoryId ?? '' });
+            setImages(Array.isArray(r.imageIds) ? r.imageIds : []);
+          }
+          setLoaded(true);
         })
         .catch((e) => {
           toast.error(errorMessage(e))
@@ -201,7 +203,7 @@ export default function ProductForm() {
             <Field label="Category" htmlFor="pcat">
               <Select id="pcat" value={form.categoryId} onChange={set('categoryId')}>
                 <option value="">No category</option>
-                {categories.map((c) => (
+                {(categories || []).map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>

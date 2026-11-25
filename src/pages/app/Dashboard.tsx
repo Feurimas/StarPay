@@ -104,7 +104,7 @@ export default function Dashboard() {
                   <Link to={copy.to(workspace.id)} className="flex min-h-16 items-center gap-3 px-5 py-3 hover:bg-surface-muted sm:px-6">
                     {s.done ? <CheckCircle2 className="h-5 w-5 shrink-0 text-success" aria-hidden /> : <Circle className="h-5 w-5 shrink-0 text-subtle" aria-hidden />}
                     <span className="min-w-0 flex-1">
-                      <span className={`block text-sm font-semibold ${s.done ? 'text-muted line-through' : ''}`}>{copy.title}</span>
+                      <span className={`block text-sm font-semibold `}>{copy.title}</span>
                       <span className="block text-xs text-muted">{copy.text}</span>
                     </span>
                   </Link>
